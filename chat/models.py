@@ -46,7 +46,7 @@ class Chat_name(models.Model):
     user_2 = models.ForeignKey(Customer_user, related_name='user_2', on_delete=models.CASCADE)
 
     def __str__(self):
-        return f'chat_{self.user_1.username}_{self.user_2.username}'
+        return self.name
     
 
 

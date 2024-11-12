@@ -38,7 +38,8 @@ class MyConsumer(AsyncWebsocketConsumer):
             await self.close()
         else:
             await self.accept()
-            self.chat_id = self.scope['url_route']['kwargs']['chat']
+            headers = {key.decode():value.decode() for key , value in dict(self.scope['headers']).items()}
+            self.chat_id = headers['chat']
             self.user.status = True
             await self.update_message_status('connect')
             await database_sync_to_async(self.user.save)()
@@ -74,8 +75,8 @@ class MyConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         data = json.loads(text_data)
+        print(data)
         message = data['message']
-        
         chat_id = data['chat_name']
         
         id_recevier=chat_id.split('_')
@@ -87,7 +88,7 @@ class MyConsumer(AsyncWebsocketConsumer):
         receiver_status = await self.get_user_status(int(receiver_id))
         
         message_type = 'connect' if receiver_status else 'disconnect'
-        
+        print(message)
         await self.save_message(chat_id=chat_id, sender=self.user.id, receiver=receiver_id, message=message, type_message=message_type)
         
         await self.channel_layer.group_send(

@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
 from .models import *
+
 user=get_user_model
 @receiver(post_save,sender=Customer_user)
 def create_Chatname(sender, instance, created, **kwargs):

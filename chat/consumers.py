@@ -4,7 +4,7 @@ from django.contrib.auth.models import AnonymousUser
 from channels.db import database_sync_to_async
 
 from chat.utils import generate_chat_name
-from .models import Message, Customer_user, Chat_name
+from .models import Message, Customer_user
 from django.utils import timezone
 
 
@@ -21,6 +21,7 @@ class MyConsumer(BaseConsumer):
 
     async def connect(self):
         if not self.user:
+     
             await self.close()
         else:
             await self.accept()
@@ -64,7 +65,8 @@ class MyConsumer(BaseConsumer):
                 "receiver": receiver_id
             }
         )
-
+        
+        await self.save_message(sender=self.user.id,receiver=receiver_id,message=message,type_message=message_type)
     async def disconnect(self, close_code):
         chat_ids = await self.get_users_app()
         self.user.status = False
@@ -114,16 +116,14 @@ class MyConsumer(BaseConsumer):
         
 
     @database_sync_to_async
-    def save_message(self, chat_id, sender, receiver, message, type_message):
+    def save_message(self, sender, receiver, message, type_message):
         sender_user = Customer_user.objects.get(id=sender)
         receiver_user = Customer_user.objects.get(id=receiver)
-        chat_name , created = Chat_name.objects.get_or_create(name=chat_id,user_1=sender_user,user_2=receiver_user)
         
         return Message.objects.create(
             message=message,
             timestamp=timezone.now(),
             type_message=type_message,
-            chat_name=chat_name,
             sender=sender_user,
             receiver=receiver_user
             
@@ -148,3 +148,47 @@ class MyConsumer(BaseConsumer):
     
     
 #daphne -p 8000 project.asgi:application
+
+
+
+
+class Consumer_notication(BaseConsumer):
+    
+   async def connect(self):
+        if not self.user:
+            await self.close()
+        else:
+            await self.accept()
+            self.chat = f"chanal_name_{str(self.user.id)}"
+            print(f"i in cou chat name == {self.chat}")
+            await self.channel_layer.group_add(
+                self.chat,
+                self.channel_name,
+            )
+
+
+   async def disconnect(self, close_code):
+        await self.channel_layer.group_discard(
+            self.chat,
+            self.channel_name,
+        )
+     
+   async def notification(self, event):
+        print("Notification event received:", event)
+        message = event['message']
+        sender = event['sender']
+        receiver = event.get('receiver', None) 
+        print(message, sender, receiver, "Received notification event")
+        await self.send(
+            text_data=json.dumps({
+                "type": "notification",
+                "message": message,
+                "sender": sender,
+            })
+        )
+
+            
+        
+
+        
+    

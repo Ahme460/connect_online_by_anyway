@@ -1,6 +1,4 @@
 from django.contrib import admin
-
-# Register your models here.
 from .models import *
 @admin.register(Customer_user)
 class CustomerUserAdmin(admin.ModelAdmin):
@@ -9,4 +7,5 @@ class CustomerUserAdmin(admin.ModelAdmin):
             obj.set_password(form.cleaned_data['password'])  # تأكد من تشفير كلمة المرور
         super().save_model(request, obj, form, change)
 admin.site.register(Message)
-admin.site.register(Chat_name)
+
+admin.site.register(Notfications)

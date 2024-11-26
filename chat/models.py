@@ -24,8 +24,6 @@ class MyUserManager(BaseUserManager):
             raise ValueError("Superuser must have is_superuser=True.")
 
         return self.create_user(username, password, **extra_fields)
-    
-
 
 class Customer_user(AbstractUser):
     phone=models.CharField( max_length=50)
@@ -36,19 +34,6 @@ class Customer_user(AbstractUser):
     def __str__(self):
         return self.username
     
-    
-    
-    
-
-class Chat_name(models.Model):
-    name=models.CharField(max_length=50  ,null=False)
-    user_1 = models.ForeignKey(Customer_user, related_name='user1', on_delete=models.CASCADE)
-    user_2 = models.ForeignKey(Customer_user, related_name='user_2', on_delete=models.CASCADE)
-
-    def __str__(self):
-        return self.name
-    
-
 
 class Message(models.Model):
     
@@ -57,7 +42,7 @@ class Message(models.Model):
         ("connect","connect"),
         ("seen","seen")
     ]
-    chat_name=models.ForeignKey(Chat_name, on_delete=models.CASCADE)
+
     sender = models.ForeignKey(Customer_user, related_name='sent_messages', on_delete=models.CASCADE)
     receiver = models.ForeignKey(Customer_user, related_name='received_messages', on_delete=models.CASCADE)
     message = models.TextField()
@@ -69,3 +54,16 @@ class Message(models.Model):
 
 
 
+class Notfications(models.Model):
+    sender = models.ForeignKey(
+        Customer_user,
+        on_delete=models.CASCADE,
+        related_name="sent_notifications"
+    )
+    receiver = models.ForeignKey(
+        Customer_user,
+        on_delete=models.CASCADE,
+        related_name="received_notifications"
+    )
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)

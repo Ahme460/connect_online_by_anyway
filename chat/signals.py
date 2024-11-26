@@ -1,20 +1,26 @@
-from django.contrib.auth import get_user_model
-from django.db.models.signals import post_save, pre_delete
+from django.db.models.signals import post_save
 from django.dispatch import receiver
-from .models import *
+from .models import Message
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 
-user=get_user_model
-@receiver(post_save,sender=Customer_user)
-def create_Chatname(sender, instance, created, **kwargs):
+@receiver(post_save, sender=Message)
+def send_message_notification(sender, instance, created, **kwargs):
     if created:
-        base_user=instance.id
-        users=Customer_user.objects.all().exclude(id=instance.id).values_list('id',flat=True)
-        for i in users:
-            chat_id=int(i)+int(base_user)
-            chat=Chat_name.objects.create(
-                name=f"chat_{chat_id}",
-                user_1=instance,  # استخدم الكائن بدلاً من id
-                user_2=Customer_user.objects.get(id=i)
-            )
-            
+        print("hi iam in signal")
         
+        receiver = instance.receiver
+        channel_layer = get_channel_layer()
+        chat = f"chanal_name_{str(receiver.id)}"
+        print(f"iam in signal chat is {chat}")
+    
+        async_to_sync(channel_layer.group_send)(
+            chat, 
+            {
+                "type": "notification",
+                "receiver": receiver.id,
+                "message": f"New message from {instance.sender.username}",
+                "sender": instance.sender.id,
+            }
+        )
+        print("Event sent to channel group.")

@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-^d)r8*huyt8z%1q^929uboukzzc-lrngr%0hl4!%&(m0)wn+u7
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -141,10 +141,15 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # settings.py
 # settings.py
 CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+        'CONFIG': {
+            'capacity': 1000,
+            'expiry': 60,
+        },
     },
 }
+
 
 
 REST_FRAMEWORK = {
